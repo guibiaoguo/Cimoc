@@ -93,9 +93,11 @@ public class PuFei extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         String url = StringUtils.format("http://m.pufei.net/manhua/%s/%s.html", cid, path);
-        return new Request.Builder().url(url).build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override

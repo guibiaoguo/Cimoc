@@ -24,11 +24,16 @@ public class StreamConfigFragment extends BaseFragment implements DialogCaller {
     private static final int DIALOG_REQUEST_ORIENTATION = 0;
     private static final int DIALOG_REQUEST_TURN = 1;
 
-    @BindView(R.id.settings_reader_interval) CheckBoxPreference mReaderInterval;
-    @BindView(R.id.settings_reader_load_prev) CheckBoxPreference mReaderLoadPrev;
-    @BindView(R.id.settings_reader_load_next) CheckBoxPreference mReaderLoadNext;
-    @BindView(R.id.settings_reader_orientation) ChoicePreference mReaderOrientation;
-    @BindView(R.id.settings_reader_turn) ChoicePreference mReaderTurn;
+    @BindView(R.id.settings_reader_interval)
+    CheckBoxPreference mReaderInterval;
+    @BindView(R.id.settings_reader_load_prev)
+    CheckBoxPreference mReaderLoadPrev;
+    @BindView(R.id.settings_reader_load_next)
+    CheckBoxPreference mReaderLoadNext;
+    @BindView(R.id.settings_reader_orientation)
+    ChoicePreference mReaderOrientation;
+    @BindView(R.id.settings_reader_turn)
+    ChoicePreference mReaderTurn;
 
     @Override
     protected void initView() {

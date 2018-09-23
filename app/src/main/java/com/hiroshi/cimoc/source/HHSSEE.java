@@ -98,10 +98,12 @@ public class HHSSEE extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         String[] array = path.split("-");
         String url = StringUtils.format("http://www.hhmmoo.com/page%s/1.html?s=%s", array[0], array[1]);
-        return new Request.Builder().url(url).build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override

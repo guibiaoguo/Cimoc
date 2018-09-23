@@ -2,7 +2,6 @@ package com.hiroshi.cimoc.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Pair;
 import android.view.View;
 
 import com.hiroshi.cimoc.R;

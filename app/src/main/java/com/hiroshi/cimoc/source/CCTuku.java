@@ -11,6 +11,7 @@ import com.hiroshi.cimoc.parser.MangaParser;
 import com.hiroshi.cimoc.parser.NodeIterator;
 import com.hiroshi.cimoc.parser.SearchIterator;
 import com.hiroshi.cimoc.soup.Node;
+import com.hiroshi.cimoc.utils.CollectionUtils;
 import com.hiroshi.cimoc.utils.DecryptionUtils;
 import com.hiroshi.cimoc.utils.StringUtils;
 
@@ -74,7 +75,7 @@ public class CCTuku extends MangaParser {
         String update = body.textWithSubstring("#chapter > div > div > div.top > span", 0, 10);
         // FIXME 这里可能有多个作者 暂时先取第一个
         String author = body.text("div.detailTop > div.content > div.info > p:eq(1) > a");
-        String intro = body.text("div.detailContent > p:eq(1)");
+        String intro = body.text("div.detailContent");
         // FIXME 手机版页面好像获取不到状态 电脑板页面太大不想用 暂时先固定为连载吧
         comic.setInfo(title, cover, update, intro, author, false);
     }
@@ -92,9 +93,11 @@ public class CCTuku extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         String url = StringUtils.format("http://m.tuku.cc/comic/%s/%s", cid, path);
-        return new Request.Builder().url(url).build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override

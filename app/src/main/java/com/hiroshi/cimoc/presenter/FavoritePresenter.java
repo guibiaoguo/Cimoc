@@ -1,7 +1,5 @@
 package com.hiroshi.cimoc.presenter;
 
-import android.util.Pair;
-
 import com.hiroshi.cimoc.core.Manga;
 import com.hiroshi.cimoc.manager.ComicManager;
 import com.hiroshi.cimoc.manager.SourceManager;
@@ -14,7 +12,6 @@ import com.hiroshi.cimoc.ui.view.FavoriteView;
 
 import java.util.List;
 
-import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;

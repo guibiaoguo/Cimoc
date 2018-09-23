@@ -10,6 +10,8 @@ import com.hiroshi.cimoc.parser.JsonIterator;
 import com.hiroshi.cimoc.parser.MangaCategory;
 import com.hiroshi.cimoc.parser.MangaParser;
 import com.hiroshi.cimoc.parser.SearchIterator;
+import com.hiroshi.cimoc.soup.Node;
+import com.hiroshi.cimoc.utils.DecryptionUtils;
 import com.hiroshi.cimoc.utils.StringUtils;
 
 import org.json.JSONArray;
@@ -42,6 +44,10 @@ public class Dmzj extends MangaParser {
         init(source, new Category());
     }
 
+    private static final String[] servers = {
+            "https://images.dmzj.com/"
+    };
+
     @Override
     public Request getSearchRequest(String keyword, int page) {
         if (page == 1) {
@@ -59,11 +65,11 @@ public class Dmzj extends MangaParser {
                 @Override
                 protected Comic parse(JSONObject object) {
                     try {
-                        String cid = object.getString("id");
+                        String cid = object.getString("comic_py");
                         String title = object.getString("name");
-                        String cover = object.getString("cover");
-                        long time = object.getLong("last_updatetime") * 1000;
-                        String update = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date(time));
+                        String cover = "https://" + object.getString("cover").substring(2);
+                        //long time = object.getLong("last_updatetime") * 1000;
+                        String update = object.getString("last_update_chapter_name");
                         String author = object.optString("authors");
                         return new Comic(TYPE, cid, title, cover, update, author);
                     } catch (Exception e) {
@@ -80,26 +86,33 @@ public class Dmzj extends MangaParser {
 
     @Override
     public Request getInfoRequest(String cid) {
-        String url = StringUtils.format("http://v2.api.dmzj.com/comic/%s.json", cid);
+        String url = StringUtils.format("https://www.dmzj.com/info/%s.html", cid);
         return new Request.Builder().url(url).build();
     }
 
     @Override
     public void parseInfo(String html, Comic comic) {
         try {
-            JSONObject object = new JSONObject(html);
-            String title = object.getString("title");
-            String cover = object.getString("cover");
-            Long time = object.has("last_updatetime") ? object.getLong("last_updatetime") * 1000 : null;
-            String update = time == null ? null : StringUtils.getFormatTime("yyyy-MM-dd", time);
-            String intro = object.optString("description");
-            StringBuilder sb = new StringBuilder();
-            JSONArray array = object.getJSONArray("authors");
-            for (int i = 0; i < array.length(); ++i) {
-                sb.append(array.getJSONObject(i).getString("tag_name")).append(" ");
-            }
-            String author = sb.toString();
-            boolean status = object.getJSONArray("status").getJSONObject(0).getInt("tag_id") == 2310;
+//            JSONObject object = new JSONObject(html);
+//            String title = object.getString("title");
+//            String cover = object.getString("cover");
+//            Long time = object.has("last_updatetime") ? object.getLong("last_updatetime") * 1000 : null;
+//            String update = time == null ? null : StringUtils.getFormatTime("yyyy-MM-dd", time);
+//            String intro = object.optString("description");
+//            StringBuilder sb = new StringBuilder();
+//            JSONArray array = object.getJSONArray("authors");
+//            for (int i = 0; i < array.length(); ++i) {
+//                sb.append(array.getJSONObject(i).getString("tag_name")).append(" ");
+//            }
+//            String author = sb.toString();
+//            boolean status = object.getJSONArray("status").getJSONObject(0).getInt("tag_id") == 2310;
+            Node body = new Node(html);
+            String title = body.text("div.comic_deCon > h1 > a");
+            String cover = body.src("div.comic_i_img > a > img");
+            String update = body.text("span.list_con_zj");
+            String author = body.text("ul.comic_deCon_liO > li:nth-child(1)").substring(3);
+            String intro = body.text(" div.comic_deCon > p");
+            boolean status = isFinish(body.text(" ul.comic_deCon_liO > li:nth-child(2)").substring(3));
             comic.setInfo(title, cover, update, intro, author, status);
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,41 +122,57 @@ public class Dmzj extends MangaParser {
     @Override
     public List<Chapter> parseChapter(String html) {
         List<Chapter> list = new LinkedList<>();
-        try {
-            JSONObject object = new JSONObject(html);
-            JSONArray array = object.getJSONArray("chapters");
-            for (int i = 0; i != array.length(); ++i) {
-                JSONArray data = array.getJSONObject(i).getJSONArray("data");
-                for (int j = 0; j != data.length(); ++j) {
-                    JSONObject chapter = data.getJSONObject(j);
-                    String title = chapter.getString("chapter_title");
-                    String path = chapter.getString("chapter_id");
-                    list.add(new Chapter(title, path));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+//        try {
+//            JSONObject object = new JSONObject(html);
+//            JSONArray array = object.getJSONArray("chapters");
+//            for (int i = 0; i != array.length(); ++i) {
+//                JSONArray data = array.getJSONObject(i).getJSONArray("data");
+//                for (int j = 0; j != data.length(); ++j) {
+//                    JSONObject chapter = data.getJSONObject(j);
+//                    String title = chapter.getString("chapter_title");
+//                    String path = chapter.getString("chapter_id");
+//                    list.add(new Chapter(title, path));
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        Node body = new Node(html);
+        for (Node node : body.list("div.tab-content.tab-content-selected.zj_list_con.autoHeight > ul > li a")) {
+            String title = node.text();
+            String path = node.hrefWithSplit(2);
+            list.add(new Chapter(title, path));
         }
         return list;
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
-        String url = StringUtils.format("http://v2.api.dmzj.com/chapter/%s/%s.json", cid, path);
-        return new Request.Builder().url(url).build();
+    public List<Request>  getImagesRequest(String cid, String path) {
+        String url = StringUtils.format("https://www.dmzj.com/view/%s/%s.html#@page=1", cid, path);
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override
     public List<ImageUrl> parseImages(String html) {
         List<ImageUrl> list = new LinkedList<>();
-        try {
-            JSONObject object = new JSONObject(html);
-            JSONArray array = object.getJSONArray("page_url");
-            for (int i = 0; i < array.length(); ++i) {
-                list.add(new ImageUrl(i + 1, array.getString(i), false));
+        String packed = StringUtils.match("eval(.*?)\\n", html, 1);
+        if (packed != null) {
+            String result = DecryptionUtils.evalDecrypt(packed);
+            packed = StringUtils.match("eval(.*)", result, 1);
+            result = DecryptionUtils.evalDecrypt(packed);
+
+            try {
+                String jsonString = new JSONObject(StringUtils.match("var pages='(.*)';", result,1)).get("page_url").toString();
+                JSONArray array = new JSONArray(jsonString.split("\r\n"));
+                int size = array.length();
+                for (int i = 0; i != size; ++i) {
+                    list.add(new ImageUrl(i + 1, buildUrl(array.getString(i), servers), false));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return list;
     }

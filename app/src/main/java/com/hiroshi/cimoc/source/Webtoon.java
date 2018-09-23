@@ -103,9 +103,11 @@ public class Webtoon extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         String url = "http://m.webtoons.com/zh-hans/".concat(path);
-        return new Request.Builder().url(url).addHeader("Referer", "http://m.webtoons.com").build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).addHeader("Referer", "http://m.webtoons.com").build());
+        return requests;
     }
 
     @Override

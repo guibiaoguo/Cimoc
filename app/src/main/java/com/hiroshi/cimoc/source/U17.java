@@ -96,10 +96,12 @@ public class U17 extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         // String url = StringUtils.format("http://www.u17.com/chapter/%s.html", path);
         String url = "http://www.u17.com/comic/ajax.php?mod=chapter&act=get_chapter_v5&chapter_id=".concat(path);
-        return new Request.Builder().url(url).build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override

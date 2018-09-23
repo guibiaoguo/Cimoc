@@ -48,7 +48,7 @@ public class Locality extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         return null;
     }
 

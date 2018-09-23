@@ -158,8 +158,10 @@ public class MangaNel extends MangaParser {
      * @param path 章节路径
      */
     @Override
-    public Request getImagesRequest(String cid, String path) {
-        return new Request.Builder().url(path).build();
+    public List<Request>  getImagesRequest(String cid, String path) {
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(path).build());
+        return requests;
     }
     
     /**

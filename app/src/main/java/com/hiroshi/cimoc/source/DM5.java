@@ -142,9 +142,11 @@ public class DM5 extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
+    public List<Request>  getImagesRequest(String cid, String path) {
         String url = "http://www.dm5.com/".concat(path);
-        return new Request.Builder().url(url).build();
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().url(url).build());
+        return requests;
     }
 
     @Override

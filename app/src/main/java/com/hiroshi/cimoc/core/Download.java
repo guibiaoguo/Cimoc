@@ -149,7 +149,7 @@ public class Download {
             String jsonString = getJsonFromChapter(task.getTitle(), task.getPath());
             DocumentFile dir1 = DocumentUtils.getOrCreateSubDirectory(root, DOWNLOAD);
             DocumentFile dir2 = DocumentUtils.getOrCreateSubDirectory(dir1, String.valueOf(task.getSource()));
-            DocumentFile dir3 = DocumentUtils.getOrCreateSubDirectory(dir2, task.getCid());
+            DocumentFile dir3 = DocumentUtils.getOrCreateSubDirectory(dir2, task.getCid().replaceAll("[^0-9a-zA-Z\u4e00-\u9fa5.，,。？“”]+",""));
             DocumentFile dir4 = DocumentUtils.getOrCreateSubDirectory(dir3, DecryptionUtils.urlDecrypt(task.getPath().replaceAll("/|\\?", "-")));
             if (dir4 != null) {
                 DocumentFile file = DocumentUtils.getOrCreateFile(dir4, FILE_INDEX);

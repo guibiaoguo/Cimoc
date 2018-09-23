@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import okhttp3.Headers;
 import okhttp3.Request;
@@ -33,6 +34,10 @@ public class IKanman extends MangaParser {
     public static final int TYPE = 0;
     public static final String DEFAULT_TITLE = "看漫画";
 
+    private static final String[] servers = {
+            "https://i.hamreus.com"
+    };
+
     public static Source getDefaultSource() {
         return new Source(null, DEFAULT_TITLE, TYPE, true);
     }
@@ -43,9 +48,10 @@ public class IKanman extends MangaParser {
 
     @Override
     public Request getSearchRequest(String keyword, int page) {
-        String url = StringUtils.format("http://m.manhuagui.com/s/%s.html?page=%d&ajax=1", keyword, page);
+
+        String url = StringUtils.format("https://www.manhuagui.com/s/%s_p%d.html", keyword, page);
         return new Request.Builder()
-                .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.0;) Chrome/58.0.3029.110 Mobile")
+                .addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
                 .url(url)
                 .build();
     }
@@ -53,14 +59,14 @@ public class IKanman extends MangaParser {
     @Override
     public SearchIterator getSearchIterator(String html, int page) {
         Node body = new Node(html);
-        return new NodeIterator(body.list("li > a")) {
+        return new NodeIterator(body.list("div.book-result > ul > li")) {
             @Override
             protected Comic parse(Node node) {
-                String cid = node.hrefWithSplit(1);
-                String title = node.text("h3");
-                String cover = node.attr("div > img", "data-src");
-                String update = node.text("dl:eq(5) > dd");
-                String author = node.text("dl:eq(2) > dd");
+                String cid = node.hrefWithSplit("a.bcover",1);
+                String title = node.text("div.book-detail a");
+                String cover = node.src("a.bcover>img");
+                String update = node.text("a.bcover>span.tt");
+                String author = node.text("div.book-detail dd:eq(3) a");
                 return new Comic(TYPE, cid, title, cover, update, author);
             }
         };
@@ -68,9 +74,9 @@ public class IKanman extends MangaParser {
 
     @Override
     public Request getInfoRequest(String cid) {
-        String url = "http://www.manhuagui.com/comic/".concat(cid);
+        String url = StringUtils.format("https://www.manhuagui.com/comic/%s/",cid);
         return new Request.Builder()
-                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36")
+                .addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
                 .url(url)
                 .build();
     }
@@ -110,12 +116,11 @@ public class IKanman extends MangaParser {
     }
 
     @Override
-    public Request getImagesRequest(String cid, String path) {
-        String url = StringUtils.format("http://m.manhuagui.com/comic/%s/%s.html", cid, path);
-        return new Request.Builder()
-                .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.0;) Chrome/58.0.3029.110 Mobile")
-                .url(url)
-                .build();
+    public List<Request>  getImagesRequest(String cid, String path) {
+        String url = StringUtils.format("https://www.manhuagui.com/comic/%s/%s.html", cid, path);
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request.Builder().addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36").url(url).build());
+        return requests;
     }
 
     @Override
@@ -130,13 +135,14 @@ public class IKanman extends MangaParser {
                 packed = packed.replace(replaceable, StringUtils.format("'%s'.split('|')", real));
                 String result = DecryptionUtils.evalDecrypt(packed);
 
-                String jsonString = result.substring(11, result.length() - 9);
+                String jsonString = result.substring(12, result.length() - 12);
                 JSONObject object = new JSONObject(jsonString);
-                String chapterId = object.getString("chapterId");
+                String chapterId = object.getString("cid");
                 String md5 = object.getJSONObject("sl").getString("md5");
-                JSONArray array = object.getJSONArray("images");
+                JSONArray array = object.getJSONArray("files");
+                String path = object.getString("path");
                 for (int i = 0; i != array.length(); ++i) {
-                    String url = StringUtils.format("http://i.hamreus.com:8080/%s?cid=%s&md5=%s", array.getString(i), chapterId, md5);
+                    String url = StringUtils.format("https://i.hamreus.com/%s/%s?cid=373138&md5=FZPqBKdwALSQnMVr5u2_rg",path,array.getString(i), chapterId, md5);
                     list.add(new ImageUrl(i + 1, url, false));
                 }
             } catch (Exception e) {

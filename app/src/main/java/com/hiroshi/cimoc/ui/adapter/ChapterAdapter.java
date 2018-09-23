@@ -3,7 +3,6 @@ package com.hiroshi.cimoc.ui.adapter;
 import android.content.Context;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -39,7 +38,8 @@ public class ChapterAdapter extends BaseAdapter<Switcher<Chapter>> {
     }
 
     static class ButtonHolder extends BaseAdapter.BaseViewHolder {
-        @BindView(R.id.item_chapter_button) ChapterButton chapterButton;
+        @BindView(R.id.item_chapter_button)
+        ChapterButton chapterButton;
 
         ButtonHolder(View view) {
             super(view);

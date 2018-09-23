@@ -65,7 +65,7 @@ public interface Parser {
      * @param cid 漫画 ID
      * @param path 章节路径
      */
-    Request getImagesRequest(String cid, String path);
+    List<Request> getImagesRequest(String cid, String path);
 
     /**
      * 解析图片列表，若为惰性加载，则 {@link ImageUrl#lazy} 为 true

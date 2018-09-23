@@ -127,8 +127,8 @@ public class Local {
     }
 
     private static List<DocumentFile> classify(List<ScanInfo> chapter,
-                                              List<ScanInfo> comic,
-                                              DocumentFile dir) {
+                                               List<ScanInfo> comic,
+                                               DocumentFile dir) {
         List<DocumentFile> other = new LinkedList<>();
         for (DocumentFile file : dir.listFiles()) {
             if (file.isDirectory()) {

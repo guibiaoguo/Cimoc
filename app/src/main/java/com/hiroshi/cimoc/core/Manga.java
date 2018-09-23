@@ -21,7 +21,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
@@ -113,16 +112,21 @@ public class Manga {
             public void call(Subscriber<? super List<ImageUrl>> subscriber) {
                 String html;
                 try {
-                    Request request = parser.getImagesRequest(cid, path);
-                    html = getResponseBody(App.getHttpClient(), request);
-                    List<ImageUrl> list = parser.parseImages(html);
-                    if (list.isEmpty()) {
+                    List<Request> requests = parser.getImagesRequest(cid, path);
+                    List<ImageUrl> datas = new ArrayList<>();
+                    for (Request request : requests) {
+                        html = getResponseBody(App.getHttpClient(), request);
+                        List<ImageUrl> list = parser.parseImages(html);
+                        datas.addAll(list);
+                    }
+
+                    if (datas.isEmpty()) {
                         throw new Exception();
                     } else {
-                        for (ImageUrl imageUrl : list) {
+                        for (ImageUrl imageUrl : datas) {
                             imageUrl.setChapter(path);
                         }
-                        subscriber.onNext(list);
+                        subscriber.onNext(datas);
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {
@@ -135,21 +139,23 @@ public class Manga {
     public static List<ImageUrl> getImageUrls(Parser parser, String cid, String path) throws InterruptedIOException {
         List<ImageUrl> list = new ArrayList<>();
         Response response = null;
-        try {
-            Request request  = parser.getImagesRequest(cid, path);
-            response = App.getHttpClient().newCall(request).execute();
-            if (response.isSuccessful()) {
-                list.addAll(parser.parseImages(response.body().string()));
-            } else {
-                throw new NetworkErrorException();
-            }
-        } catch (InterruptedIOException e) {
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (response != null) {
-                response.close();
+        List<Request> requests  = parser.getImagesRequest(cid, path);
+        for (Request request: requests) {
+            try {
+                response = App.getHttpClient().newCall(request).execute();
+                if (response.isSuccessful()) {
+                    list.addAll(parser.parseImages(response.body().string()));
+                } else {
+                    throw new NetworkErrorException();
+                }
+            } catch (InterruptedIOException e) {
+                throw e;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
             }
         }
         return list;
